@@ -12,10 +12,12 @@ var (
 
 type Models struct {
 	Publisher PublisherModel
+	Game      GameModel
 }
 
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Publisher: PublisherModel{db},
+		Game:      GameModel{db},
 	}
 }

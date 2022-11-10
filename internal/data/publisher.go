@@ -30,7 +30,7 @@ func (m *PublisherModel) Insert(publisher *Publisher) error {
 	return m.DB.QueryRowContext(ctx, query, publisher.Name, publisher.Link).Scan(&publisher.Id, &publisher.Version)
 }
 
-// Get a single publisher from DB
+// Get a single publisher
 func (m *PublisherModel) Get(id int64) (*Publisher, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
@@ -60,4 +60,40 @@ func (m *PublisherModel) Get(id int64) (*Publisher, error) {
 		}
 	}
 	return &publisher, nil
+}
+
+// Get list of publishers
+func (m *PublisherModel) GetAll() ([]*Publisher, error) {
+	query := `SELECT * FROM publishers`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	publishers := []*Publisher{}
+
+	for rows.Next() {
+		var publisher Publisher
+
+		err = rows.Scan(
+			&publisher.Id,
+			&publisher.Name,
+			&publisher.Link,
+			&publisher.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+		publishers = append(publishers, &publisher)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return publishers, nil
+
 }

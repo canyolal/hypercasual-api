@@ -70,4 +70,14 @@ func (app *application) showPublisherHandler(w http.ResponseWriter, r *http.Requ
 // list publishers GET /v1/publishers
 func (app *application) listPublisherHandler(w http.ResponseWriter, r *http.Request) {
 
+	publishers, err := app.models.Publisher.GetAll()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"publishers": publishers}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }

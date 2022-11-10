@@ -7,10 +7,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/julienschmidt/httprouter"
 )
 
 type PublisherList struct {
@@ -20,74 +22,6 @@ type PublisherList struct {
 
 // List of publishers and store links
 var PUBLISHERS = []PublisherList{
-	{
-		Name:      "Voodoo",
-		StoreLink: "https://apps.apple.com/us/developer/voodoo/id714804730?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Good Job Games",
-		StoreLink: "https://apps.apple.com/tr/developer/good-job-games/id1191495496?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Ketchapp",
-		StoreLink: "https://apps.apple.com/us/developer/ketchapp/id528065807?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Alictus",
-		StoreLink: "https://apps.apple.com/tr/developer/alictus/id892399717?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Lion Studios",
-		StoreLink: "https://apps.apple.com/us/developer/lion-studios/id1362220666?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Rollic",
-		StoreLink: "https://apps.apple.com/us/developer/rollic-games/id1452111779?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Kwalee",
-		StoreLink: "https://apps.apple.com/tr/developer/kwalee-ltd/id497961736?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "BoomBit",
-		StoreLink: "https://apps.apple.com/kh/developer/boombit-inc/id1045926022?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Amanotes",
-		StoreLink: "https://apps.apple.com/us/developer/amanotes-pte-ltd/id1441389613?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Azur Games",
-		StoreLink: "https://apps.apple.com/us/developer/azur-interactive-games-limited/id1296347323?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Crazy Labs",
-		StoreLink: "https://apps.apple.com/us/developer/crazy-labs/id721307559?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Coda",
-		StoreLink: "https://apps.apple.com/us/developer/coda-platform-limited/id1475474579?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Ducky",
-		StoreLink: "https://apps.apple.com/tr/developer/ducky-ltd/id1541013213?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Gismart",
-		StoreLink: "https://apps.apple.com/us/developer/gismart/id666830030?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Green Panda Games",
-		StoreLink: "https://apps.apple.com/tr/developer/green-panda-games/id669978473?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "Homa",
-		StoreLink: "https://apps.apple.com/tr/developer/homa-games/id1508492426?see-all=i-phonei-pad-apps",
-	},
-	{
-		Name:      "JoyPac",
-		StoreLink: "https://apps.apple.com/tr/developer/joypac/id1422558565?see-all=i-phonei-pad-apps",
-	},
 	{
 		Name:      "Moonee",
 		StoreLink: "https://apps.apple.com/us/developer/moonee-publishing-ltd/id1469957859?see-all=i-phonei-pad-apps",
@@ -271,4 +205,16 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 	}
 
 	return nil
+}
+
+// ReadIDParam() reads :id from http request parameters.
+func (app *application) readIDParam(r *http.Request) (int64, error) {
+	params := httprouter.ParamsFromContext(r.Context())
+
+	id, err := strconv.ParseInt(params.ByName("id"), 10, 64)
+	if err != nil || id < 1 {
+		return 0, errors.New("invalid id")
+	}
+
+	return id, nil
 }

@@ -12,6 +12,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v1/status", app.healthCheckHandler)
 
 	router.HandlerFunc(http.MethodPost, "/v1/publishers", app.createPublisherHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/publishers/:id", app.showPublisherHandler)
 
 	return router
 }

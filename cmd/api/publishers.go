@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/canyolal/hypercasual-inventories/internal/data"
 )
 
+// creates a new publisher for POST /v1/publishers
 func (app *application) createPublisherHandler(w http.ResponseWriter, r *http.Request) {
 
 	var input struct {
@@ -38,4 +40,34 @@ func (app *application) createPublisherHandler(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
+}
+
+// shows a single resource of publisher GET /v1/publishers/:id
+func (app *application) showPublisherHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	publisher, err := app.models.Publisher.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, envelope{"publisher": publisher}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+// list publishers GET /v1/publishers
+func (app *application) listPublisherHandler(w http.ResponseWriter, r *http.Request) {
+
 }

@@ -23,9 +23,10 @@ type config struct {
 }
 
 type application struct {
-	config config
-	logger *jsonlog.Logger
-	models data.Models
+	config         config
+	logger         *jsonlog.Logger
+	models         data.Models
+	gamesAndGenres map[string]string
 }
 
 func main() {
@@ -47,10 +48,14 @@ func main() {
 	logger.PrintInfo("database connection is established", nil)
 
 	app := &application{
-		config: cfg,
-		logger: logger,
-		models: data.NewModels(db),
+		config:         cfg,
+		logger:         logger,
+		models:         data.NewModels(db),
+		gamesAndGenres: make(map[string]string),
 	}
+
+	app.fetchGamesList()
+	app.runCronGameUpdater()
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port),
@@ -60,7 +65,7 @@ func main() {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	fmt.Println("Server running")
+	logger.PrintInfo("server running", nil)
 	err = srv.ListenAndServe()
 	logger.PrintFatal(err, nil)
 }

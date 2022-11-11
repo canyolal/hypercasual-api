@@ -97,3 +97,27 @@ func (m *PublisherModel) GetAll() ([]*Publisher, error) {
 	return publishers, nil
 
 }
+
+// Get a single publisher
+func (m *PublisherModel) GetFromName(name string) (*int64, error) {
+	query := `
+	SELECT id
+	FROM publishers
+	WHERE name = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var Id int64
+
+	err := m.DB.QueryRowContext(ctx, query, name).Scan(&Id)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &Id, nil
+}

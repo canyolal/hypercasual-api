@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/julienschmidt/httprouter"
@@ -22,6 +23,74 @@ type PublisherList struct {
 
 // List of publishers and store links
 var PUBLISHERS = []PublisherList{
+	{
+		Name:      "Voodoo",
+		StoreLink: "https://apps.apple.com/us/developer/voodoo/id714804730?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Good Job Games",
+		StoreLink: "https://apps.apple.com/tr/developer/good-job-games/id1191495496?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Ketchapp",
+		StoreLink: "https://apps.apple.com/us/developer/ketchapp/id528065807?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Alictus",
+		StoreLink: "https://apps.apple.com/tr/developer/alictus/id892399717?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Lion Studios",
+		StoreLink: "https://apps.apple.com/us/developer/lion-studios/id1362220666?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Rollic",
+		StoreLink: "https://apps.apple.com/us/developer/rollic-games/id1452111779?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Kwalee",
+		StoreLink: "https://apps.apple.com/tr/developer/kwalee-ltd/id497961736?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "BoomBit",
+		StoreLink: "https://apps.apple.com/kh/developer/boombit-inc/id1045926022?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Amanotes",
+		StoreLink: "https://apps.apple.com/us/developer/amanotes-pte-ltd/id1441389613?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Azur Games",
+		StoreLink: "https://apps.apple.com/us/developer/azur-interactive-games-limited/id1296347323?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Crazy Labs",
+		StoreLink: "https://apps.apple.com/us/developer/crazy-labs/id721307559?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Coda",
+		StoreLink: "https://apps.apple.com/us/developer/coda-platform-limited/id1475474579?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Ducky",
+		StoreLink: "https://apps.apple.com/tr/developer/ducky-ltd/id1541013213?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Gismart",
+		StoreLink: "https://apps.apple.com/us/developer/gismart/id666830030?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Green Panda Games",
+		StoreLink: "https://apps.apple.com/tr/developer/green-panda-games/id669978473?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "Homa",
+		StoreLink: "https://apps.apple.com/tr/developer/homa-games/id1508492426?see-all=i-phonei-pad-apps",
+	},
+	{
+		Name:      "JoyPac",
+		StoreLink: "https://apps.apple.com/tr/developer/joypac/id1422558565?see-all=i-phonei-pad-apps",
+	},
 	{
 		Name:      "Moonee",
 		StoreLink: "https://apps.apple.com/us/developer/moonee-publishing-ltd/id1469957859?see-all=i-phonei-pad-apps",
@@ -62,7 +131,7 @@ var wg sync.WaitGroup
 type envelope map[string]interface{}
 
 // returns games-genre duo from publisher's app store page
-func Scrape(p *PublisherList) (map[string]string, string, error) {
+func Scrape(p *PublisherList) (map[string]string, error) {
 	res, err := http.Get(p.StoreLink)
 	if err != nil {
 		log.Fatal(err)
@@ -84,26 +153,51 @@ func Scrape(p *PublisherList) (map[string]string, string, error) {
 		title = strings.TrimSpace(title)
 		genre := s.Find(".we-lockup__subtitle").Text()
 		genre = strings.TrimSpace(genre)
-		fmt.Printf("Game: %d: %s - %s\n", i, title, genre)
+		//fmt.Printf("Game: %d: %s - %s\n", i, title, genre)
 		games[title] = genre
 	})
-	return games, p.Name, nil
+	return games, nil
 }
 
-// FetchFromStore fetches games from all publishers' stores
-func FetchFromStore() {
+// Fetch all games from publishers' app stores
+func (app *application) CheckGames() {
 	for _, v := range PUBLISHERS {
+
 		wg.Add(1)
-		go func(p *PublisherList) {
+
+		publisherId, err := app.models.Publisher.GetFromName(v.Name)
+		if err != nil {
+			app.logger.PrintError(err, nil)
+			return
+		}
+		publId := publisherId
+		publ := v
+		go func(p *PublisherList, pId *int64) {
 			defer wg.Done()
-			Scrape(p)
-		}(&v)
+
+			gameList, err := Scrape(p)
+			if err != nil {
+				app.logger.PrintError(err, nil)
+				return
+			}
+
+			for k, vv := range gameList {
+				if _, ok := app.gamesAndGenres[k]; !ok {
+					err := app.models.Game.Insert(*publId, k, vv)
+					time.Sleep(time.Millisecond * 10)
+					if err != nil {
+						app.logger.PrintError(err, nil)
+						return
+					}
+				}
+			}
+
+		}(&publ, publId)
 	}
 	wg.Wait()
 }
 
-// writeJSON() is a helper for sending JSON responses. Receives http.ResponseWriter,
-// HTTP status code, HTTP headers and data to be sent as JSON.
+// writeJSON() is a helper for sending JSON responses.
 func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 
 	js, err := json.Marshal(data)

@@ -2,6 +2,9 @@ CREATE TABLE IF NOT EXISTS games (
 	id bigserial PRIMARY KEY, 
 	name text NOT NULL,
 	genre text NOT NULL,
-	publisher_id bigint NOT NULL REFERENCES publishers ON DELETE CASCADE,
-	version integer NOT NULL DEFAULT 1
+	publisher_name text NOT NULL,
+	version integer NOT NULL DEFAULT 1,
+	CONSTRAINT fk_publisher
+		FOREIGN KEY(name)
+			REFERENCES publishers(name)
 );

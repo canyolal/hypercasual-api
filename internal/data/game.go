@@ -35,20 +35,21 @@ func (m *GameModel) Insert(publisherName, name, genre string) error {
 }
 
 // Get all games from db
-func (m *GameModel) GetAllWithFilters(name, genre string, filters Filters) ([]*Game, map[string]string, Metadata, error) {
+func (m *GameModel) GetAllWithFilters(name, genre, publisher_name string, filters Filters) ([]*Game, map[string]string, Metadata, error) {
 	query := fmt.Sprintf(`
 		SELECT count(*) OVER(), id, name, genre, publisher_name, version
 		FROM games
 		WHERE (to_tsvector('simple', name) @@ plainto_tsquery('simple', $1) OR $1 = '')
 		AND (to_tsvector('simple', genre) @@ plainto_tsquery('simple', $2) OR $2 = '')
+		AND (to_tsvector('simple', publisher_name) @@ plainto_tsquery('simple', $3) OR $3 = '')
 		ORDER BY %s %s, id ASC
-		LIMIT $3 OFFSET $4`,
+		LIMIT $4 OFFSET $5`,
 		filters.sortColumn(), filters.sortDirection())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, name, genre, filters.limit(), filters.offset())
+	rows, err := m.DB.QueryContext(ctx, query, name, genre, publisher_name, filters.limit(), filters.offset())
 	if err != nil {
 		return nil, nil, Metadata{}, err
 	}

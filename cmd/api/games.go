@@ -10,8 +10,9 @@ import (
 func (app *application) listGameHandler(w http.ResponseWriter, r *http.Request) {
 
 	var input struct {
-		Name  string
-		Genre string
+		Name          string
+		Genre         string
+		PublisherName string
 		data.Filters
 	}
 
@@ -21,6 +22,7 @@ func (app *application) listGameHandler(w http.ResponseWriter, r *http.Request) 
 
 	input.Name = app.readString(qs, "name", "")
 	input.Genre = app.readString(qs, "genre", "")
+	input.PublisherName = app.readString(qs, "publisher_name", "")
 
 	input.Filters.Page = app.readInt(qs, "page", 1, v)
 	input.Filters.PageSize = app.readInt(qs, "page_size", 20, v)
@@ -39,7 +41,7 @@ func (app *application) listGameHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	games, _, metadata, err := app.models.Game.GetAllWithFilters(input.Name, input.Genre, input.Filters)
+	games, _, metadata, err := app.models.Game.GetAllWithFilters(input.Name, input.Genre, input.PublisherName, input.Filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

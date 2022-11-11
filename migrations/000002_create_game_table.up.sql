@@ -3,8 +3,5 @@ CREATE TABLE IF NOT EXISTS games (
 	name text NOT NULL,
 	genre text NOT NULL,
 	publisher_name text NOT NULL,
-	version integer NOT NULL DEFAULT 1,
-	CONSTRAINT fk_publisher
-		FOREIGN KEY(name)
-			REFERENCES publishers(name)
+	version integer NOT NULL DEFAULT 1
 );

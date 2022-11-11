@@ -8,11 +8,11 @@ import (
 )
 
 type Game struct {
-	Id          int64  `json:"id"`
-	Name        string `json:"name,omitempty"`
-	Genre       string `json:"genre,omitempty"`
-	PublisherId int64  `json:"publisher_id,omitempty"`
-	Version     int32  `json:"version"`
+	Id           int64  `json:"id"`
+	Name         string `json:"name,omitempty"`
+	Genre        string `json:"genre,omitempty"`
+	PubisherName string `json:"publisher_name,omitempty"`
+	Version      int32  `json:"version"`
 }
 
 type GameModel struct {
@@ -20,9 +20,9 @@ type GameModel struct {
 }
 
 // Insert a game into db
-func (m *GameModel) Insert(publisherID int64, name, genre string) error {
+func (m *GameModel) Insert(publisherName, name, genre string) error {
 	query := `
-	INSERT INTO games (name, genre, publisher_id)
+	INSERT INTO games (name, genre, publisher_name)
 	VALUES ($1, $2 ,$3)
 	RETURNING id`
 
@@ -31,13 +31,13 @@ func (m *GameModel) Insert(publisherID int64, name, genre string) error {
 
 	var game Game
 
-	return m.DB.QueryRowContext(ctx, query, name, genre, publisherID).Scan(&game.Id)
+	return m.DB.QueryRowContext(ctx, query, name, genre, publisherName).Scan(&game.Id)
 }
 
 // Get all games from db
 func (m *GameModel) GetAllWithFilters(name, genre string, filters Filters) ([]*Game, map[string]string, Metadata, error) {
 	query := fmt.Sprintf(`
-		SELECT count(*) OVER(), id, name, genre, publisher_id, version
+		SELECT count(*) OVER(), id, name, genre, publisher_name, version
 		FROM games
 		WHERE (to_tsvector('simple', name) @@ plainto_tsquery('simple', $1) OR $1 = '')
 		AND (to_tsvector('simple', genre) @@ plainto_tsquery('simple', $2) OR $2 = '')
@@ -66,7 +66,7 @@ func (m *GameModel) GetAllWithFilters(name, genre string, filters Filters) ([]*G
 			&game.Id,
 			&game.Name,
 			&game.Genre,
-			&game.PublisherId,
+			&game.PubisherName,
 			&game.Version,
 		)
 		if err != nil {
@@ -106,7 +106,7 @@ func (m *GameModel) GetAll() ([]*Game, map[string]string, error) {
 			&game.Id,
 			&game.Name,
 			&game.Genre,
-			&game.PublisherId,
+			&game.PubisherName,
 			&game.Version,
 		)
 		if err != nil {

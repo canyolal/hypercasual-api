@@ -4,10 +4,10 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-// update game DB from app store link for every 6h
+// run a cron job and check and update if new game exists
 func (app *application) runCronGameUpdater() {
 	c := cron.New()
-	c.AddFunc("@every 6h", app.CheckGames)
+	c.AddFunc("@every 6h", app.CheckGames) // every 6h
 	c.Start()
 }
 

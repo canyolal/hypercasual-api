@@ -29,8 +29,8 @@ func (app *application) listGameHandler(w http.ResponseWriter, r *http.Request) 
 
 	// Allowed sort options.
 	input.Filters.SortSafeList = []string{
-		"id", "name", "genre", "publisher_id",
-		"-id", "-name", "-genre", "-publisher_id",
+		"id", "name", "genre", "publisher_name",
+		"-id", "-name", "-genre", "-publisher_name",
 	}
 
 	// Validate filter entries

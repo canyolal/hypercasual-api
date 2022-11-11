@@ -167,14 +167,9 @@ func (app *application) CheckGames() {
 
 		wg.Add(1)
 
-		publisherId, err := app.models.Publisher.GetFromName(v.Name)
-		if err != nil {
-			app.logger.PrintError(err, nil)
-			return
-		}
-		publId := publisherId
 		publ := v
-		go func(p *PublisherList, pId *int64) {
+		publName := v.Name
+		go func(p *PublisherList, publisherName string) {
 			defer wg.Done()
 
 			gameList, err := Scrape(p)
@@ -185,7 +180,7 @@ func (app *application) CheckGames() {
 
 			for k, vv := range gameList {
 				if _, ok := app.gamesAndGenres[k]; !ok {
-					err := app.models.Game.Insert(*publId, k, vv)
+					err := app.models.Game.Insert(publisherName, k, vv)
 					time.Sleep(time.Millisecond * 10)
 					if err != nil {
 						app.logger.PrintError(err, nil)
@@ -194,7 +189,7 @@ func (app *application) CheckGames() {
 				}
 			}
 
-		}(&publ, publId)
+		}(&publ, publName)
 	}
 	wg.Wait()
 }

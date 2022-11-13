@@ -47,7 +47,7 @@ func (app *application) listGameHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"metadata": metadata, "publishers": games}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"metadata": metadata, "games": games}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

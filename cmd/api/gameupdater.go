@@ -7,7 +7,7 @@ import (
 // run a cron job and check and update if new game exists
 func (app *application) runCronGameUpdater() {
 	c := cron.New()
-	c.AddFunc("@every 30s", app.CheckGames) // every 6h
+	c.AddFunc("@every 3h", app.CheckGames) // every 3h
 	c.Start()
 }
 
@@ -18,5 +18,7 @@ func (app *application) fetchGamesList() {
 		app.logger.PrintError(err, nil)
 		return
 	}
-	app.gamesAndGenres = gameList
+	if gameList != nil {
+		app.gamesAndGenres = gameList
+	}
 }

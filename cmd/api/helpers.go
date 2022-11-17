@@ -26,6 +26,10 @@ type PublisherList struct {
 // List of publishers and store links
 var PUBLISHERS = []PublisherList{
 	{
+		Name:      "Matchingham",
+		StoreLink: "https://apps.apple.com/tr/developer/matchingham-games/id1513009812?see-all=i-phonei-pad-apps",
+	},
+	{
 		Name:      "Miniclip",
 		StoreLink: "https://apps.apple.com/us/developer/miniclip-com/id337457683?see-all=i-phonei-pad-apps",
 	},
@@ -79,7 +83,7 @@ var PUBLISHERS = []PublisherList{
 	},
 	{
 		Name:      "Ducky",
-		StoreLink: "https://apps.apple.com/tr/developer/ducky-ltd/id1541013213?see-all=i-phonei-pad-apps",
+		StoreLink: "https://apps.apple.com/us/developer/ducky-games/id957096633?see-all=i-phonei-pad-apps",
 	},
 	{
 		Name:      "Gismart",
@@ -167,6 +171,9 @@ func Scrape(p *PublisherList) (map[string]string, error) {
 
 // Fetch all games from publishers' app stores
 func (app *application) CheckGames() {
+	app.fetchGamesList()
+	time.Sleep(3 * time.Second)
+
 	for _, v := range PUBLISHERS {
 
 		wg.Add(1)

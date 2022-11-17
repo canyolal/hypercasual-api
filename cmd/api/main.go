@@ -63,7 +63,6 @@ func main() {
 		gamesAndGenres: make(map[string]string),
 	}
 
-	app.fetchGamesList()
 	app.runCronGameUpdater()
 
 	srv := &http.Server{

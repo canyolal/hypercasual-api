@@ -8,11 +8,12 @@ import (
 )
 
 type Game struct {
-	Id           int64  `json:"id"`
-	Name         string `json:"name,omitempty"`
-	Genre        string `json:"genre,omitempty"`
-	PubisherName string `json:"publisher_name,omitempty"`
-	Version      int32  `json:"version"`
+	Id           int64     `json:"id"`
+	Name         string    `json:"name,omitempty"`
+	Genre        string    `json:"genre,omitempty"`
+	PubisherName string    `json:"publisher_name,omitempty"`
+	CreatedAt    time.Time `json:"-"`
+	Version      int32     `json:"version"`
 }
 
 type GameModel struct {
@@ -108,6 +109,7 @@ func (m *GameModel) GetAll() ([]*Game, map[string]string, error) {
 			&game.Name,
 			&game.Genre,
 			&game.PubisherName,
+			&game.CreatedAt,
 			&game.Version,
 		)
 		if err != nil {

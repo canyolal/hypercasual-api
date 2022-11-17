@@ -26,6 +26,10 @@ type PublisherList struct {
 // List of publishers and store links
 var PUBLISHERS = []PublisherList{
 	{
+		Name:      "Miniclip",
+		StoreLink: "https://apps.apple.com/us/developer/miniclip-com/id337457683?see-all=i-phonei-pad-apps",
+	},
+	{
 		Name:      "Voodoo",
 		StoreLink: "https://apps.apple.com/us/developer/voodoo/id714804730?see-all=i-phonei-pad-apps",
 	},

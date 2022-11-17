@@ -7,7 +7,7 @@ import (
 // run a cron job and check and update if new game exists
 func (app *application) runCronGameUpdater() {
 	c := cron.New()
-	c.AddFunc("@every 6h", app.CheckGames) // every 6h
+	c.AddFunc("@every 30s", app.CheckGames) // every 6h
 	c.Start()
 }
 

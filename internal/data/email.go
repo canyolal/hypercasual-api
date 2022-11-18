@@ -24,8 +24,8 @@ type EmailModel struct {
 }
 
 func ValidateEmail(v *validator.Validator, email string) {
-	v.Check(email != "", "email", "must be provided")
-	v.Check(validator.Matches(email, validator.EmailRX), "email", "must be a valid email address")
+	v.Check(email != "", "email", "email must be provided")
+	v.Check(validator.Matches(email, validator.EmailRX), "email", "email must be a valid email address")
 }
 
 func (m *EmailModel) Insert(mail string) error {

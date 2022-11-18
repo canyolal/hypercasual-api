@@ -30,7 +30,7 @@ func (app *application) subscribeHandler(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateEmail):
-			v.AddError("email", "a user with this email address already exist")
+			v.AddError("email", "this email address is already subscribed")
 			app.failedValidationResponse(w, r, v.Errors)
 		default:
 			app.serverErrorResponse(w, r, err)

@@ -6,9 +6,10 @@ API checks 25 top hypercasual game publishers' Apple Store pages and update the 
 
 API currently works on following endpoints.
 
-| Method | Endpoint |
-| ------ | ------ |
-| GET | [/v1/games][PlDb] |
+| Method | Endpoint | Params |
+| ------ | ------ | ------ |
+| GET | [/v1/games][PlDb] | [/v1/games?name=""&genre=""&publisher_name=""&page_size=""&page=""][PlDb] |
+| POST | [/v1/subscribe][PlDb] | email |
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 

@@ -39,7 +39,16 @@ func (m *EmailModel) Insert(mail string) error {
 
 	var email Email
 
-	return m.DB.QueryRowContext(ctx, query, mail).Scan(&email.Id)
+	err := m.DB.QueryRowContext(ctx, query, mail).Scan(&email.Id)
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "maillist_email_key"`:
+			return ErrDuplicateEmail
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
 func (m *EmailModel) Delete(mail string) error {

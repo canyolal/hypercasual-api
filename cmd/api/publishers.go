@@ -18,7 +18,7 @@ func (app *application) createPublisherHandler(w http.ResponseWriter, r *http.Re
 
 	err := app.readJSON(w, r, &input)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 

@@ -17,5 +17,7 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/v1/games", app.listGameHandler)
 
+	router.HandlerFunc(http.MethodPost, "/v1/subscribe", app.subscribeHandler)
+
 	return app.enableCORS(router)
 }

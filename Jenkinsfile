@@ -4,7 +4,8 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                sh 'go run ./cmd/api -cors-trusted-origins="http://localhost:3000'
+                sh 'echo "Starting the server"'
+                sh 'echo "Second step"'
             }
         }
     }

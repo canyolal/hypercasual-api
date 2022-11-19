@@ -75,3 +75,16 @@ func (m *EmailModel) Exists(id int64) (bool, error) {
 	err := m.DB.QueryRowContext(ctx, query, id).Scan(&exists)
 	return exists, err
 }
+
+func (m *EmailModel) ExistsByEmail(mail string) (bool, error) {
+	var exists bool
+
+	query := `
+	SELECT EXISTS(SELECT true FROM maillist WHERE email = $1)`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, mail).Scan(&exists)
+	return exists, err
+}

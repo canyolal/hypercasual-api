@@ -62,3 +62,16 @@ func (m *EmailModel) Delete(mail string) error {
 	_, err := m.DB.ExecContext(ctx, query, mail)
 	return err
 }
+
+func (m *EmailModel) Exists(id int64) (bool, error) {
+	var exists bool
+
+	query := `
+	SELECT EXISTS(SELECT true FROM maillist WHERE id = $1)`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(&exists)
+	return exists, err
+}

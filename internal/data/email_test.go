@@ -1,6 +1,7 @@
 package data
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/canyolal/hypercasual-inventories/internal/assert"
@@ -79,7 +80,6 @@ func TestEmailDelete(t *testing.T) {
 	tests := []struct {
 		name  string
 		email string
-		want  bool
 	}{
 		{
 			name:  "Non-Existent Email",
@@ -107,3 +107,80 @@ func TestEmailDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestEmailInsert(t *testing.T) {
+	tests := []struct {
+		name  string
+		email string
+		want  error
+	}{
+		{
+			name:  "Non-Existent E-mail",
+			email: "test@test.com",
+			want:  nil,
+		},
+		{
+			name:  "Duplicate E-mail",
+			email: "selami@sahin.com",
+			want:  errors.New("duplicate email"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db := newTestDB(t)
+
+			m := EmailModel{db}
+
+			err := m.Insert(tt.email)
+
+			if tt.name == "Duplicate E-mail" {
+				assert.Equal(t, err.Error(), tt.want.Error())
+			} else {
+				assert.NilError(t, err)
+			}
+		})
+	}
+}
+
+// func TestValidateEmail(t *testing.T) {
+
+// 	tests := []struct {
+// 		name  string
+// 		email string
+// 	}{
+// 		{
+// 			name:  "Invalid E-mail w/o @",
+// 			email: "testtest.com",
+// 		},
+// 		{
+// 			name:  "Invalid E-mail w/o .",
+// 			email: "testt@estcom",
+// 		},
+// 		{
+// 			name:  "Invalid E-mail w/o name",
+// 			email: "@est.com",
+// 		},
+// 		{
+// 			name:  "Empty E-mail",
+// 			email: "",
+// 		},
+// 		{
+// 			name:  "Invalid E-mail",
+// 			email: "12345",
+// 		},
+// 	}
+
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+
+// 			v := validator.New()
+
+// 			v.Check(validator.Matches(tt.email, validator.EmailRX), "email", "email must be a valid email address")
+
+// 			if v.Errors != nil {
+// 				assert.Equal(t, v.Errors["email"], "email must be a valid email address")
+// 			}
+// 		})
+// 	}
+// }

@@ -20,4 +20,4 @@ jobs:
       env: 
         DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
-      run: docker login -u ${{ env.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }} && docker push hc-api-autobuild:latest
+      run: docker login -u ${{ env.DOCKERHUB_USERNAME }} -p ${{ env.DOCKERHUB_TOKEN }} && docker push hc-api-autobuild:latest

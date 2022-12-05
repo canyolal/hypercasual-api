@@ -3,7 +3,7 @@ name: ci to docker hub
 on:
   push:
     branches:
-      - 'main'
+      - 'master'
 
 jobs:
   docker:

@@ -1,13 +1,12 @@
-FROM golang:1-19-alpine
-
-WORKDIR /server
-
-COPY go.mod ./
-COPY go.sum ./
-
+FROM golang:alpine
+WORKDIR /src
+COPY go.mod go.sum ./
 RUN go mod download
-COPY ./ ./
+COPY . .
+RUN go build -o /app ./cmd/api
 
-RUN go build -o /hypercasual-api
-
-##TODO
+FROM alpine
+COPY --from=0 /app /app
+ENV HYPERCASUAL_DSN=postgres://hypercasual:h4rdP4ssw0rd@localhost/hypercasual
+EXPOSE 4001
+ENTRYPOINT [ "/app"]

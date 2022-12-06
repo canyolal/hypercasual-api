@@ -26,4 +26,4 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: hc-api-autobuild:latest
+          tags: canyolal/hc-api-autobuild:latest

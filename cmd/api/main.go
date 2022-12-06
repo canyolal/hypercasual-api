@@ -4,14 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"fmt"
-	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/canyolal/hypercasual-inventories/internal/data"
 	"github.com/canyolal/hypercasual-inventories/internal/jsonlog"
+	"github.com/canyolal/hypercasual-inventories/internal/mailer"
 	_ "github.com/lib/pq"
 )
 
@@ -24,6 +24,13 @@ type config struct {
 	cors struct {
 		trustedOrigins []string
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 type application struct {
@@ -31,6 +38,8 @@ type application struct {
 	logger         *jsonlog.Logger
 	models         data.Models
 	gamesAndGenres map[string]string
+	mailer         mailer.Mailer
+	wg             sync.WaitGroup
 }
 
 func main() {
@@ -39,6 +48,12 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4001, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("HYPERCASUAL_DSN"), "PostgreSQL DSN")
+
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.mailtrap.io", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 587, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", os.Getenv("SMTP_username"), "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", os.Getenv("SMTP_password"), "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Hypercasual Tracker <no-reply@cyy.com>", "SMTP sender")
 
 	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(val string) error {
 		cfg.cors.trustedOrigins = strings.Fields(val)
@@ -61,23 +76,18 @@ func main() {
 		logger:         logger,
 		models:         data.NewModels(db),
 		gamesAndGenres: make(map[string]string),
+		mailer:         mailer.New(cfg.smtp.port, cfg.smtp.host, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
 
 	app.runCronGameUpdater()
 
-	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.port),
-		Handler:      app.routes(),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
+	err = app.serve()
+	if err != nil {
+		logger.PrintFatal(err, nil)
 	}
-
-	logger.PrintInfo("server running", nil)
-	err = srv.ListenAndServe()
-	logger.PrintFatal(err, nil)
 }
 
+// openDB opens a sql connection pool
 func openDB(cfg config) (*sql.DB, error) {
 
 	db, err := sql.Open("postgres", cfg.db.dsn)

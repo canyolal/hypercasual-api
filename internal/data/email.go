@@ -88,3 +88,36 @@ func (m *EmailModel) ExistsByEmail(mail string) (bool, error) {
 	err := m.DB.QueryRowContext(ctx, query, mail).Scan(&exists)
 	return exists, err
 }
+
+func (m *EmailModel) GetAll() ([]*Email, error) {
+	query := `select * from maillist;`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	emails := []*Email{}
+
+	for rows.Next() {
+		var email Email
+
+		err = rows.Scan(
+			&email.Id,
+			&email.Email,
+			&email.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		emails = append(emails, &email)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return emails, nil
+}

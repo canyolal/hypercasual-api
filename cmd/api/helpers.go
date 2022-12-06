@@ -10,18 +10,12 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/canyolal/hypercasual-inventories/internal/validator"
 	"github.com/julienschmidt/httprouter"
 )
-
-type PublisherList struct {
-	Name      string
-	StoreLink string
-}
 
 // List of publishers and store links
 var PUBLISHERS = []PublisherList{
@@ -135,7 +129,10 @@ var PUBLISHERS = []PublisherList{
 	},
 }
 
-var wg sync.WaitGroup
+type PublisherList struct {
+	Name      string
+	StoreLink string
+}
 
 // envelope type to nest json under struct name
 type envelope map[string]interface{}
@@ -163,7 +160,6 @@ func Scrape(p *PublisherList) (map[string]string, error) {
 		title = strings.TrimSpace(title)
 		genre := s.Find(".we-lockup__subtitle").Text()
 		genre = strings.TrimSpace(genre)
-		//fmt.Printf("Game: %d: %s - %s\n", i, title, genre)
 		games[title] = genre
 	})
 	return games, nil
@@ -171,17 +167,22 @@ func Scrape(p *PublisherList) (map[string]string, error) {
 
 // Fetch all games from publishers' app stores
 func (app *application) CheckGames() {
+
 	app.fetchGamesList()
 	time.Sleep(3 * time.Second)
+	maillist, err := app.models.Email.GetAll()
+	if err != nil {
+		app.logger.PrintError(err, nil)
+	}
 
 	for _, v := range PUBLISHERS {
 
-		wg.Add(1)
+		app.wg.Add(1)
 
 		publ := v
 		publName := v.Name
 		go func(p *PublisherList, publisherName string) {
-			defer wg.Done()
+			defer app.wg.Done()
 
 			gameList, err := Scrape(p)
 			if err != nil {
@@ -189,21 +190,42 @@ func (app *application) CheckGames() {
 				return
 			}
 
-			for k, vv := range gameList {
-				if _, ok := app.gamesAndGenres[k]; !ok {
-					err := app.models.Game.Insert(publisherName, k, vv)
+			for title, genre := range gameList {
+				if _, ok := app.gamesAndGenres[title]; !ok {
+					err := app.models.Game.Insert(publisherName, title, genre)
 					time.Sleep(time.Millisecond * 10)
 					if err != nil {
 						app.logger.PrintError(err, nil)
-						return
+					}
+					for _, m := range maillist {
+						app.wg.Add(1)
+						go func(tit, gen, pubName, emailAddr string) {
+							defer app.wg.Done()
+							data := map[string]interface{}{
+								"Name":          title,
+								"PublisherName": publisherName,
+								"Genre":         genre,
+							}
+							err = app.mailer.SendEmailToSubscribers(emailAddr, "newGameEmail.tmpl", data)
+							if err != nil {
+								app.logger.PrintError(err, nil)
+								return
+							}
+						}(title, genre, publisherName, m.Email)
 					}
 				}
 			}
 
 		}(&publ, publName)
 	}
-	wg.Wait()
+	app.wg.Wait()
 }
+
+// TODO this should send email in a for loop w/ goroutine (replace with above for loop)
+// func (app *application) getEmailAndSendEmails(maillist []*data.Email, title, publisherName, genre string) error {
+
+// 	return nil
+// }
 
 // writeJSON() is a helper for sending JSON responses.
 func (app *application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {

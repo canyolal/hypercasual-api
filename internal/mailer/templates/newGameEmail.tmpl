@@ -1,0 +1,28 @@
+{{define "subject"}} New Game Alert {{end}}
+
+{{define "plainBody"}}
+Hello, 
+
+{{.Name}} is just released by {{.PublisherName}} with {{.Genre}} genre.
+
+Thanks,
+Hypercasual Tracker Alert
+{{end}}
+
+{{define "htmlBody"}}
+<!doctype html>
+
+<html>
+    <head>
+        <meta name = "viewport" content = "width-device-width" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    </head>
+    
+    <body>
+        <p>Hello,</p>
+        <p>{{.Name}} is just released by {{.PublisherName}} with {{.Genre}} genre.</p>
+        <p>Thanks,</p>
+        <p>Hypercasual Tracker Alert</p>
+    </body>
+</html>
+{{end}}

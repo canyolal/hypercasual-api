@@ -1,2 +1,5 @@
+/testresults
+
 .DS_Store
 .env
+docker_compose.yml

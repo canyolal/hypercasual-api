@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"flag"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -19,7 +20,12 @@ type config struct {
 	port int
 	env  string
 	db   struct {
-		dsn string
+		username string
+		password string
+		name     string
+		sslmode  string
+		host     string
+		port     int
 	}
 	cors struct {
 		trustedOrigins []string
@@ -47,7 +53,12 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4001, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("HYPERCASUAL_DSN"), "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.username, "db-username", os.Getenv("POSTGRES_USER"), "Postgres Username")
+	flag.StringVar(&cfg.db.password, "db-password", os.Getenv("POSTGRES_PASSWORD"), "Postgres Password")
+	flag.StringVar(&cfg.db.name, "db-name", os.Getenv("POSTGRES_DB"), "Postgres DB Name")
+	flag.StringVar(&cfg.db.sslmode, "db-sslmode", "disable", "Postgres SSL Mode")
+	flag.StringVar(&cfg.db.host, "db-host", "postgres", "Postgres Host")
+	flag.IntVar(&cfg.db.port, "db-port", 5432, "Postgres Port")
 
 	flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.mailtrap.io", "SMTP host")
 	flag.IntVar(&cfg.smtp.port, "smtp-port", 587, "SMTP port")
@@ -90,7 +101,9 @@ func main() {
 // openDB opens a sql connection pool
 func openDB(cfg config) (*sql.DB, error) {
 
-	db, err := sql.Open("postgres", cfg.db.dsn)
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		cfg.db.host, cfg.db.port, cfg.db.username, cfg.db.password, cfg.db.name, cfg.db.sslmode)
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}

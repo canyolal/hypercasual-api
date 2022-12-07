@@ -6,7 +6,7 @@ COPY . .
 RUN go build -o /app ./cmd/api
 
 FROM alpine
+RUN apk add --no-cache ca-certificates && update-ca-certificates
 COPY --from=0 /app /app
-ENV HYPERCASUAL_DSN=postgres://hypercasual:h4rdP4ssw0rd@localhost/hypercasual
-EXPOSE 4001
+EXPOSE 4001 4001
 ENTRYPOINT [ "/app"]
